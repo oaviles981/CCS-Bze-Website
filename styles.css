@@ -273,6 +273,7 @@ img,svg{display:block;max-width:100%;}
   .mission .wrap{grid-template-columns:1fr;}
   .mission .cell-stage{order:-1;}
   .photo-grid{grid-template-columns:1fr;}
+  .photo-card img{height:220px;}
   .site-nav{
     position:absolute;top:100%;left:0;right:0;
     background:var(--white);flex-direction:column;align-items:flex-start;

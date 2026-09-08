@@ -53,4 +53,67 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { threshold: 0.6 });
   counters.forEach(function (el) { countObserver.observe(el); });
 
+  // Community photo slider (autoplay, arrows, dots, pause)
+  var slider = document.querySelector('.slider');
+  if (slider) {
+    var slides = Array.prototype.slice.call(slider.querySelectorAll('.slide'));
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.slider-dot'));
+    var prevBtn = slider.querySelector('.slide-arrow.prev');
+    var nextBtn = slider.querySelector('.slide-arrow.next');
+    var pauseBtn = document.querySelector('.slider-pause');
+    var progressFill = document.querySelector('.progress-fill');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var DURATION = 5000;
+    var index = 0;
+    var hoverPaused = false;
+    var manualPaused = false;
+
+    function isPaused() { return hoverPaused || manualPaused; }
+
+    function syncPausedVisual() {
+      slider.classList.toggle('is-paused', isPaused());
+    }
+
+    function restartProgress() {
+      if (!progressFill || reduceMotion) return;
+      progressFill.classList.remove('animate');
+      void progressFill.offsetWidth; // force reflow so the animation restarts
+      progressFill.classList.add('animate');
+      syncPausedVisual();
+    }
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach(function (s, si) { s.classList.toggle('is-active', si === index); });
+      dots.forEach(function (d, di) {
+        d.classList.toggle('is-active', di === index);
+        d.setAttribute('aria-current', di === index ? 'true' : 'false');
+      });
+      restartProgress();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { show(index - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { show(index + 1); });
+    dots.forEach(function (d, i) { d.addEventListener('click', function () { show(i); }); });
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', function () {
+        manualPaused = !manualPaused;
+        pauseBtn.setAttribute('aria-pressed', manualPaused ? 'true' : 'false');
+        pauseBtn.setAttribute('aria-label', manualPaused ? 'Play slideshow' : 'Pause slideshow');
+        syncPausedVisual();
+      });
+    }
+
+    slider.addEventListener('mouseenter', function () { hoverPaused = true; syncPausedVisual(); });
+    slider.addEventListener('mouseleave', function () { hoverPaused = false; syncPausedVisual(); });
+    slider.addEventListener('focusin', function () { hoverPaused = true; syncPausedVisual(); });
+    slider.addEventListener('focusout', function () { hoverPaused = false; syncPausedVisual(); });
+
+    show(0);
+    if (!reduceMotion) {
+      setInterval(function () { if (!isPaused()) show(index + 1); }, DURATION);
+    }
+  }
+
 });
